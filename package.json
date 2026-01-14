@@ -1,11 +1,7 @@
 {
   "name": "karakterx",
   "version": "1.0.0",
-  "description": "AI Character Generator",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
+  "type": "module",
   "dependencies": {
     "replicate": "^0.25.1"
   },
