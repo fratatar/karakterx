@@ -1,64 +1,52 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karakter Oluşturucu</title>
+    <meta charset="UTF-8"><title>AI Karakter Dönüştürücü</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
         .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; }
-        select, button { padding: 10px; margin: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
-        button { background: #0070f3; color: white; cursor: pointer; border: none; }
-        #resultImage { margin-top: 20px; max-width: 100%; border-radius: 10px; display: none; }
-        .loading { display: none; margin-top: 10px; font-weight: bold; }
+        input, select, button { margin: 10px; display: block; width: 100%; box-sizing: border-box; padding: 10px; }
+        #resultImage { margin-top: 20px; max-width: 512px; display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>AI Karakter Oluşturucu</h2>
+        <h2>Resmini Karakter Yap</h2>
+        <input type="file" id="imageInput" accept="image/*">
         <select id="styleSelect">
             <option value="cyberpunk">Cyberpunk</option>
             <option value="anime">Anime</option>
             <option value="pixar">3D Pixar</option>
-            <option value="watercolor">Sulu Boya</option>
         </select>
-        <button onclick="generate()">Karakter Oluştur</button>
-        <div id="loading" class="loading">Görsel hazırlanıyor, lütfen bekleyin...</div>
-        <br>
-        <img id="resultImage" src="" alt="Sonuç">
+        <button onclick="generate()">Dönüştür</button>
+        <div id="loading" style="display:none;">İşleniyor... (30-40 sn sürebilir)</div>
+        <img id="resultImage">
     </div>
 
     <script>
         async function generate() {
+            const file = document.getElementById('imageInput').files[0];
             const style = document.getElementById('styleSelect').value;
-            const img = document.getElementById('resultImage');
-            const loading = document.getElementById('loading');
+            if(!file) return alert("Resim seç!");
 
-            img.style.display = 'none';
-            loading.style.display = 'block';
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64Image = reader.result.split(',')[1];
+                document.getElementById('loading').style.display = 'block';
 
-            try {
-                const response = await fetch('/api/generate', {
+                const res = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ style: style })
+                    body: JSON.stringify({ image: base64Image, style: style })
                 });
-                const data = await response.json();
-                
-                if (data.imageUrl) {
-                    img.src = data.imageUrl;
-                    img.onload = () => {
-                        loading.style.display = 'none';
-                        img.style.display = 'inline-block';
-                    };
-                } else {
-                    alert("Bir hata oluştu.");
-                    loading.style.display = 'none';
+                const data = await res.json();
+                if(data.imageUrl) {
+                    document.getElementById('resultImage').src = data.imageUrl;
+                    document.getElementById('resultImage').style.display = 'inline-block';
                 }
-            } catch (error) {
-                console.error(error);
-                loading.style.display = 'none';
-            }
+                document.getElementById('loading').style.display = 'none';
+            };
         }
     </script>
 </body>
