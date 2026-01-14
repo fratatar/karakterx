@@ -1,29 +1,38 @@
+import Replicate from "replicate";
+
+const replicate = new Replicate({
+  auth: "r8_7IPOZOjFRvPOOGXSTla5SmLliOVf6Gw0JOesV", // Senin verdiğin key
+});
+
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).end();
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    try {
-        const { image, style } = req.body;
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
-        const response = await fetch(
-            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-refiner-1.0",
-            {
-                headers: { 
-                    Authorization: `Bearer ${process.env.HF_TOKEN}`,
-                    "Content-Type": "application/json" 
-                },
-                method: "POST",
-                body: JSON.stringify({
-                    inputs: `A ${style} style character masterpiece, high quality`,
-                    image: image
-                }),
-            }
-        );
+  try {
+    const { image, style } = req.body;
+    if (!image) throw new Error("Resim yüklenmedi.");
 
-        const arrayBuffer = await response.arrayBuffer();
-        const base64 = Buffer.from(arrayBuffer).toString('base64');
+    // Image-to-Image (Kullanıcının resmini senin stiline dönüştüren model)
+    const output = await replicate.run(
+      "stability-ai/sdxl:7762fd39730083977f570bb4a73ad791057d36a0d0d4d0034c7c30497be2517a",
+      {
+        input: {
+          image: `data:image/jpeg;base64,${image}`,
+          prompt: `A character in ${style} style, masterpiece, high quality, 8k resolution`,
+          image_strength: 0.45, // Resmi ne kadar değiştireceği (0.1 az, 0.9 çok)
+          guidance_scale: 7.5
+        }
+      }
+    );
 
-        return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${base64}` });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
+    const imageUrl = Array.isArray(output) ? output[0] : output;
+    return res.status(200).json({ imageUrl: imageUrl });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
+  }
 }
