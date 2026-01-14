@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-    // Güvenlik Ayarları (CORS)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,22 +7,22 @@ export default async function handler(req, res) {
 
     try {
         const { style } = req.body;
-        const seed = Math.floor(Math.random() * 999999);
-        const prompt = encodeURIComponent(`masterpiece, high quality, 3d render, ${style} style character`);
-        const url = `https://pollinations.ai/p/${prompt}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+        if (!style) throw new Error("Stil seçilmedi!");
 
-        // Görseli arka planda indiriyoruz
+        const seed = Math.floor(Math.random() * 999999);
+        const prompt = encodeURIComponent(`${style} style portrait, character, high quality`);
+        const url = `https://pollinations.ai/p/${prompt}?width=512&height=512&seed=${seed}&nologo=true`;
+
+        // Sunucu taraflı kontrol
         const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        
-        // Görseli Base64 formatına çeviriyoruz (İkas'ın en sevdiği format)
-        const base64Image = Buffer.from(arrayBuffer).toString('base64');
-        const finalImage = `data:image/jpeg;base64,${base64Image}`;
+        if (!response.ok) throw new Error("Yapay zeka sunucusu meşgul.");
 
         return res.status(200).json({ 
-            imageUrl: finalImage 
+            success: true,
+            imageUrl: url // Base64 yerine direkt link, ama sunucu onayıyla
         });
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        // Hata olduğunda boş dönme, hatayı İkas'a gönder ki anlayalım
+        return res.status(500).json({ success: false, error: error.message });
     }
 }
