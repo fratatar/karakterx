@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KarakterX AI Studio</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 20px; background: #f4f7f6; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .x-btn { padding: 15px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; font-weight: bold; background: white; }
+        .x-btn.active { border-color: #0047ba; background: #eef4ff; color: #0047ba; }
+        #main-btn { width: 100%; padding: 20px; background: #52d2a2; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 800; cursor: pointer; margin-top: 20px; }
+        #res-box { width: 100%; min-height: 300px; border: 2px dashed #ccc; border-radius: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        img { width: 100%; height: auto; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align:center; color:#0047ba;">Karakterini Oluştur</h1>
+        <div class="grid">
+            <div>
+                <h3>1. Fotoğraf Yükle</h3>
+                <input type="file" id="ai-input" accept="image/*" style="margin-bottom:20px;">
+                
+                <h3>2. Stil Seç</h3>
+                <div class="btn-grid">
+                    <button class="x-btn" onclick="selSty('chibi', this)">Chibi</button>
+                    <button class="x-btn" onclick="selSty('funko', this)">Funko</button>
+                    <button class="x-btn" onclick="selSty('pixar', this)">Pixar</button>
+                    <button class="x-btn" onclick="selSty('roma', this)">Büst</button>
+                </div>
+                <button id="main-btn" onclick="processAI()">Dönüştür ✨</button>
+            </div>
+            <div>
+                <h3>3. Sonuç</h3>
+                <div id="res-box">Görsel burada görünecek</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sStyle = "";
+        function selSty(s, b) {
+            sStyle = s;
+            document.querySelectorAll('.x-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+        }
+
+        async function processAI() {
+            const file = document.getElementById('ai-input').files[0];
+            if(!file || !sStyle) return alert("Dosya ve stil seçin!");
+            
+            const btn = document.getElementById('main-btn');
+            btn.innerText = "Hazırlanıyor...";
+            btn.disabled = true;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                try {
+                    const response = await fetch('/api/generate', { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: reader.result, style: sStyle })
+                    });
+                    const data = await response.json();
+                    if(data.imageUrl) {
+                        document.getElementById('res-box').innerHTML = `<img src="${data.imageUrl}">`;
+                    } else { alert("Hata oluştu."); }
+                } catch (e) { alert("Bağlantı hatası."); }
+                btn.innerText = "Dönüştür ✨";
+                btn.disabled = false;
+            };
+        }
+    </script>
+</body>
+</html>
