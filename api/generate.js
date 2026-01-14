@@ -1,24 +1,33 @@
 export default async function handler(req, res) {
-    // ikas ve tarayıcı güvenlik izinleri (CORS)
+    // 1. IFrame ve Dış Dünya İzinleri (CORS Ayarları)
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') return res.status(200).end();
+    // Tarayıcıların ön kontrol (preflight) isteğine yanıt veriyoruz
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
 
     try {
+        // Frontend'den gelen stil bilgisini alıyoruz
         const { style } = req.body;
-        const seed = Math.floor(Math.random() * 999999);
         
-        // Dokümantasyondaki 'flux' modelini kullanıyoruz
-        const prompt = encodeURIComponent(`${style} style 3D character portrait, high quality, masterpiece, 8k`);
+        // Her seferinde benzersiz resim üretmek için rastgele sayı (seed)
+        const seed = Math.floor(Math.random() * 9999999);
         
-        // Bu URL doğrudan resmin kendisini döner, API KEY istemez
-        const imageUrl = `https://gen.pollinations.ai/image/${prompt}?model=flux&width=1024&height=1024&seed=${seed}&enhance=true&nologo=true`;
+        // Pollinations'ın ücretsiz ve hızlı FLUX modeline talimat gönderiyoruz
+        const promptText = `${style} style 3D character portrait, high resolution, professional lighting, masterpiece`;
+        const promptEncoded = encodeURIComponent(promptText);
+        
+        // Dokümantasyondaki yapıya uygun, API anahtarı gerektirmeyen URL
+        const imageUrl = `https://gen.pollinations.ai/image/${promptEncoded}?model=flux&width=1024&height=1024&seed=${seed}&enhance=true&nologo=true`;
 
+        // Başarılı sonucu frontend'e gönder
         return res.status(200).json({ imageUrl: imageUrl });
 
     } catch (error) {
+        // Hata oluşursa 500 koduyla hatayı bildir
         return res.status(500).json({ error: error.message });
     }
 }
