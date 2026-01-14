@@ -1,7 +1,4 @@
-import Replicate from "replicate";
-
 export default async function handler(req, res) {
-    // ikas'tan gelen isteklere izin ver
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -9,23 +6,16 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
-        const { image, style } = req.body;
-        const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
+        const { style } = req.body;
+        
+        // Rastgele bir sayı üreterek her seferinde farklı görsel gelmesini sağlarız
+        const seed = Math.floor(Math.random() * 1000000);
+        const prompt = encodeURIComponent(`A ${style} style character, high quality, 3d render, masterpiece`);
+        
+        // API Key istemeyen direkt görsel linki
+        const imageUrl = `https://pollinations.ai/p/${prompt}?width=1024&height=1024&seed=${seed}&model=flux`;
 
-        // HATA VEREN KISIM DÜZELTİLDİ: Tam Model ID'si
-        const output = await replicate.run(
-            "tencentarc/photomaker:ddfc2b6a23f9d9f751b244743ce9405a051aeed4f9d0d7f4b11c13f993f772f1",
-            {
-                input: {
-                    input_image: image,
-                    prompt: `img a ${style} style character, masterpiece, high quality`,
-                    num_steps: 30,
-                    style_strength_ratio: 20
-                }
-            }
-        );
-
-        return res.status(200).json({ imageUrl: output[0] });
+        return res.status(200).json({ imageUrl: imageUrl });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
