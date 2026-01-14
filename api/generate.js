@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+    // ikas ve IFrame engellerini kaldırmak için tam yetki
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,9 +9,9 @@ export default async function handler(req, res) {
     try {
         const { style } = req.body;
         const seed = Math.floor(Math.random() * 9999999);
-        const prompt = encodeURIComponent(`${style} style 3D character portrait, high resolution`);
         
-        // Pollinations Hızlı API
+        // Ücretsiz Pollinations API - Hızlı ve stabil
+        const prompt = encodeURIComponent(`${style} style 3D character portrait, high quality`);
         const imageUrl = `https://gen.pollinations.ai/image/${prompt}?model=flux&width=1024&height=1024&seed=${seed}&nologo=true`;
 
         return res.status(200).json({ imageUrl: imageUrl });
