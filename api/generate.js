@@ -6,18 +6,14 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
 
     try {
-        const { style, image } = req.body; 
+        const { style } = req.body;
         const seed = Math.floor(Math.random() * 9999999);
-        
-        // Kullanıcı foto yüklediyse prompt'a ekliyoruz
         const prompt = encodeURIComponent(`${style} style 3D character portrait, masterpiece`);
-        let imageUrl = `https://gen.pollinations.ai/image/${prompt}?model=flux&width=1024&height=1024&seed=${seed}&enhance=true&nologo=true`;
         
-        // Eğer bir görsel URL'si geldiyse parametre olarak ekle
-        if (image) {
-            imageUrl += `&image=${encodeURIComponent(image)}`;
-        }
+        // Ücretsiz ve hızlı görsel oluşturma
+        const imageUrl = `https://gen.pollinations.ai/image/${prompt}?model=flux&width=1024&height=1024&seed=${seed}&nologo=true`;
 
+        // Loglarda gördüğün 200 OK yanıtını burası basar
         return res.status(200).json({ imageUrl: imageUrl });
     } catch (error) {
         return res.status(500).json({ error: error.message });
