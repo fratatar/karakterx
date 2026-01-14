@@ -1,5 +1,8 @@
 {
   "name": "karakterx",
   "version": "1.0.0",
-  "dependencies": {}
+  "main": "api/generate.js",
+  "engines": {
+    "node": "18.x"
+  }
 }
