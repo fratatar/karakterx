@@ -8,12 +8,11 @@ export default async function handler(req, res) {
     try {
         const { style } = req.body;
         const seed = Math.floor(Math.random() * 9999999);
-        const prompt = encodeURIComponent(`${style} style 3D character portrait, masterpiece`);
+        const prompt = encodeURIComponent(`${style} style 3D character portrait, high resolution`);
         
-        // Ücretsiz ve hızlı görsel oluşturma
+        // Pollinations Hızlı API
         const imageUrl = `https://gen.pollinations.ai/image/${prompt}?model=flux&width=1024&height=1024&seed=${seed}&nologo=true`;
 
-        // Loglarda gördüğün 200 OK yanıtını burası basar
         return res.status(200).json({ imageUrl: imageUrl });
     } catch (error) {
         return res.status(500).json({ error: error.message });
