@@ -1,28 +1,29 @@
 export default async function handler(req, res) {
+    // Güvenlik izinleri (CORS)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: "Sadece POST isteği kabul edilir" });
+    }
+
     try {
         const { style } = req.body;
-        if (!style) throw new Error("Stil seçilmedi!");
-
+        
+        // Her seferinde farklı sonuç için rastgele sayı
         const seed = Math.floor(Math.random() * 999999);
-        const prompt = encodeURIComponent(`${style} style portrait, character, high quality`);
-        const url = `https://pollinations.ai/p/${prompt}?width=512&height=512&seed=${seed}&nologo=true`;
+        
+        // Pollinations üzerinden hızlı görsel üretimi
+        const prompt = encodeURIComponent(`A high quality ${style} style character portrait, 8k resolution, masterpiece`);
+        const imageUrl = `https://pollinations.ai/p/${prompt}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
 
-        // Sunucu taraflı kontrol
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Yapay zeka sunucusu meşgul.");
+        // İndeks.html'in beklediği formatta cevap dönüyoruz
+        return res.status(200).json({ imageUrl: imageUrl });
 
-        return res.status(200).json({ 
-            success: true,
-            imageUrl: url // Base64 yerine direkt link, ama sunucu onayıyla
-        });
     } catch (error) {
-        // Hata olduğunda boş dönme, hatayı İkas'a gönder ki anlayalım
-        return res.status(500).json({ success: false, error: error.message });
+        return res.status(500).json({ error: error.message });
     }
 }
