@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+    // Güvenlik izinleri
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,15 +9,19 @@ export default async function handler(req, res) {
     try {
         const { style } = req.body;
         
-        // Rastgele bir sayı üreterek her seferinde farklı görsel gelmesini sağlarız
-        const seed = Math.floor(Math.random() * 1000000);
-        const prompt = encodeURIComponent(`A ${style} style character, high quality, 3d render, masterpiece`);
+        // Her seferinde benzersiz bir görsel için rastgele sayı
+        const seed = Math.floor(Math.random() * 999999);
+        const prompt = encodeURIComponent(`masterpiece, high quality, 3d render, ${style} style character`);
         
-        // API Key istemeyen direkt görsel linki
-        const imageUrl = `https://pollinations.ai/p/${prompt}?width=1024&height=1024&seed=${seed}&model=flux`;
+        // Pollinations linki
+        const imageUrl = `https://pollinations.ai/p/${prompt}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
 
-        return res.status(200).json({ imageUrl: imageUrl });
+        // ÖNEMLİ: ikas'ın görseli tanıması için objeyi net gönderiyoruz
+        return res.status(200).json({ 
+            success: true,
+            imageUrl: imageUrl 
+        });
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ success: false, error: error.message });
     }
 }
