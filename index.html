@@ -3,61 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KarakterX Studio</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ffffff; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 400px; padding: 20px; text-align: center; border-radius: 20px; }
-        .card { background: #fff; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; }
-        h2 { margin-bottom: 5px; color: #1a1a1a; font-size: 22px; }
-        p { color: #666; font-size: 14px; margin-bottom: 20px; }
-        select, input[type="file"] { width: 100%; padding: 12px; margin: 10px 0; border: 1.5px solid #eee; border-radius: 12px; box-sizing: border-box; font-size: 14px; transition: 0.3s; }
-        select:focus { border-color: #000; }
-        .btn { background: #000; color: #fff; border: none; padding: 16px; width: 100%; border-radius: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 16px; margin-top: 10px; }
-        .btn:hover { background: #333; transform: translateY(-2px); }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
-        #resultImg { width: 100%; margin-top: 20px; border-radius: 16px; display: none; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border: 2px solid #fff; }
-        .loader { display: none; margin-top: 20px; border: 4px solid #f3f3f3; border-top: 4px solid #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-left: auto; margin-right: auto; }
+        body { font-family: sans-serif; background: #fff; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { width: 90%; max-width: 380px; padding: 25px; text-align: center; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #eee; }
+        select, input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        .btn { background: #000; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn:disabled { background: #666; cursor: not-allowed; }
+        #resultImg { width: 100%; margin-top: 20px; border-radius: 15px; display: none; }
+        .loader { display: none; margin: 20px auto; border: 4px solid #f3f3f3; border-top: 4px solid #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="card">
-        <h2>Karakterini Oluştur</h2>
-        <p>Stilini seç ve karakterini saniyeler içinde tasarla.</p>
-        
-        <input type="file" id="photoInput" accept="image/*">
-        
-        <select id="styleSelect">
-            <option value="Pixar 3D animated">Pixar 3D Stil</option>
-            <option value="Anime masterpiece">Anime / Manga Stil</option>
-            <option value="Cyberpunk futuristic">Cyberpunk Stil</option>
-            <option value="Realistic portrait">Gerçekçi Portre</option>
-        </select>
-
-        <button class="btn" id="generateBtn" onclick="generate()">Dönüştür ✨</button>
-        
-        <div class="loader" id="loader"></div>
-        <img id="resultImg" src="" alt="Yapay Zeka Sonucu">
-    </div>
+<div class="card">
+    <h2 style="margin-top:0">Karakterini Oluştur</h2>
+    <input type="file" id="photoInput" accept="image/*">
+    <select id="styleSelect">
+        <option value="3D Pixar">3D Pixar Tarzı</option>
+        <option value="Anime Masterpiece">Anime Tarzı</option>
+        <option value="Cyberpunk Neon">Cyberpunk Tarzı</option>
+    </select>
+    <button class="btn" id="genBtn" onclick="generate()">Dönüştür ✨</button>
+    <div class="loader" id="loader"></div>
+    <img id="resultImg" src="">
 </div>
 
 <script>
     async function generate() {
-        const style = document.getElementById('styleSelect').value;
-        const btn = document.getElementById('generateBtn');
+        const btn = document.getElementById('genBtn');
         const loader = document.getElementById('loader');
         const img = document.getElementById('resultImg');
+        const style = document.getElementById('styleSelect').value;
 
-        // Arayüzü hazırla
         btn.disabled = true;
-        btn.innerText = "İşleniyor...";
+        btn.innerText = "Hazırlanıyor...";
         loader.style.display = "block";
         img.style.display = "none";
 
         try {
-            const response = await fetch('/api/generate', {
+            // Kendi tam URL'in eklendi
+            const response = await fetch('https://karakterx.vercel.app/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ style: style })
@@ -66,27 +52,24 @@
             const data = await response.json();
 
             if (data.imageUrl) {
-                // Resmin tamamen yüklendiğinden emin olunca göster
+                // Resmin indirilmesini bekle
                 const tempImg = new Image();
-                tempImg.onload = function() {
+                tempImg.src = data.imageUrl;
+                tempImg.onload = () => {
                     img.src = data.imageUrl;
                     img.style.display = "block";
                     loader.style.display = "none";
                     btn.disabled = false;
                     btn.innerText = "Dönüştür ✨";
                 };
-                tempImg.src = data.imageUrl;
-            } else {
-                throw new Error("Görsel oluşturulamadı.");
             }
         } catch (error) {
             alert("Hata: " + error.message);
+            loader.style.display = "none";
             btn.disabled = false;
             btn.innerText = "Dönüştür ✨";
-            loader.style.display = "none";
         }
     }
 </script>
-
 </body>
 </html>
