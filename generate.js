@@ -5,7 +5,7 @@ const replicate = new Replicate({
 });
 
 export default async function handler(req, res) {
-    // ikas'ın bağlanabilmesi için izinler (CORS)
+    // CORS ayarları (ikas'tan bağlantı izni için)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -15,6 +15,7 @@ export default async function handler(req, res) {
     try {
         const { image, style } = req.body;
 
+        // Stil Komutları
         const prompts = {
             chibi: "chibi style, 3d render, toy figure, cute, big eyes",
             funko: "funko pop style, vinyl toy, big head, small body",
@@ -38,6 +39,7 @@ export default async function handler(req, res) {
 
         return res.status(200).json({ imageUrl: output[0] });
     } catch (error) {
+        console.error("AI Error:", error);
         return res.status(500).json({ error: error.message });
     }
 }
