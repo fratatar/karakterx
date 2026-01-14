@@ -1,28 +1,28 @@
 export default async function handler(req, res) {
-    // Güvenlik izinleri (CORS)
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') return res.status(200).end();
-
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: "Sadece POST isteği kabul edilir" });
-    }
+    if (req.method !== 'POST') return res.status(405).end();
 
     try {
-        const { style } = req.body;
-        
-        // Her seferinde farklı sonuç için rastgele sayı
-        const seed = Math.floor(Math.random() * 999999);
-        
-        // Pollinations üzerinden hızlı görsel üretimi
-        const prompt = encodeURIComponent(`A high quality ${style} style character portrait, 8k resolution, masterpiece`);
-        const imageUrl = `https://pollinations.ai/p/${prompt}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+        const { image, style } = req.body;
 
-        // İndeks.html'in beklediği formatta cevap dönüyoruz
-        return res.status(200).json({ imageUrl: imageUrl });
+        const response = await fetch(
+            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-refiner-1.0",
+            {
+                headers: { 
+                    Authorization: `Bearer ${process.env.HF_TOKEN}`,
+                    "Content-Type": "application/json" 
+                },
+                method: "POST",
+                body: JSON.stringify({
+                    inputs: `A ${style} style character masterpiece, high quality`,
+                    image: image
+                }),
+            }
+        );
 
+        const arrayBuffer = await response.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+
+        return res.status(200).json({ imageUrl: `data:image/jpeg;base64,${base64}` });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
