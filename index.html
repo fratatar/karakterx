@@ -1,39 +1,90 @@
-async function generate() {
-    const fileInput = document.querySelector('input[type="file"]');
-    const file = fileInput.files[0];
-    // Seçili stil butonunu bul (Örn: Chibi, Pixar vb.)
-    const style = document.querySelector('.selected-style')?.innerText || "Pixar"; 
-    
-    if(!file) return alert("Lütfen bir fotoğraf yükleyin!");
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>KarakterX AI Studio</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 50px; background: #f0f2f5; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 800px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        h1 { grid-column: 1 / -1; color: #1a73e8; text-align: center; }
+        .section-title { font-weight: bold; margin-bottom: 15px; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .style-btn { padding: 12px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; }
+        .style-btn.active { border-color: #1a73e8; background: #e8f0fe; color: #1a73e8; }
+        #convertBtn { width: 100%; padding: 15px; background: #56d1a7; border: none; border-radius: 10px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .result-box { border: 2px dashed #ccc; border-radius: 15px; display: flex; align-items: center; justify-content: center; min-height: 300px; overflow: hidden; position: relative; }
+        #resultImage { max-width: 100%; display: none; }
+        #loader { display: none; position: absolute; font-weight: bold; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Karakterini Oluştur</h1>
+        
+        <div>
+            <p class="section-title">1. Fotoğraf Yükle</p>
+            <input type="file" id="fileInput" accept="image/*">
 
-    const loading = document.getElementById('loading');
-    const imgElement = document.getElementById('resultImage'); // Sağdaki sonuç alanı
-    
-    if(loading) loading.style.display = 'block';
+            <p class="section-title" style="margin-top:20px;">2. Stil Seç</p>
+            <div class="btn-grid">
+                <button class="style-btn active" onclick="selectStyle(this)">Chibi</button>
+                <button class="style-btn" onclick="selectStyle(this)">Funko</button>
+                <button class="style-btn" onclick="selectStyle(this)">Pixar</button>
+                <button class="style-btn" onclick="selectStyle(this)">Büst</button>
+            </div>
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-        const base64Image = reader.result.split(',')[1];
+            <button id="convertBtn" onclick="generate()">Dönüştür ✨</button>
+        </div>
 
-        try {
-            const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: base64Image, style: style })
-            });
-            const data = await response.json();
-            
-            if (data.imageUrl) {
-                imgElement.src = data.imageUrl;
-                imgElement.style.display = 'block';
-            } else {
-                alert("Hata: " + (data.error || "Bakiye yetersiz veya servis meşgul."));
-            }
-        } catch (e) {
-            alert("Bağlantı hatası!");
-        } finally {
-            if(loading) loading.style.display = 'none';
+        <div>
+            <p class="section-title">3. Sonuç</p>
+            <div class="result-box">
+                <div id="loader">İşleniyor... (Yaklaşık 20 sn)</div>
+                <img id="resultImage" src="" alt="AI Sonuç">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedStyle = "Chibi";
+
+        function selectStyle(btn) {
+            document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedStyle = btn.innerText;
         }
-    };
-}
+
+        async function generate() {
+            const file = document.getElementById('fileInput').files[0];
+            if(!file) return alert("Resim seçin!");
+
+            const loader = document.getElementById('loader');
+            const img = document.getElementById('resultImage');
+            
+            loader.style.display = 'block';
+            img.style.display = 'none';
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64 = reader.result.split(',')[1];
+                try {
+                    const res = await fetch('/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: base64, style: selectedStyle })
+                    });
+                    const data = await res.json();
+                    if(data.imageUrl) {
+                        img.src = data.imageUrl;
+                        img.style.display = 'block';
+                    } else {
+                        alert("Hata: " + (data.error || "Bakiye bitti veya servis kapalı."));
+                    }
+                } catch (e) { alert("Bağlantı koptu."); }
+                finally { loader.style.display = 'none'; }
+            };
+        }
+    </script>
+</body>
+</html>
