@@ -1,6 +1,15 @@
 {
-  "type": "module",
+  "name": "karakterx",
+  "version": "1.0.0",
+  "description": "AI Character Generator",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
-    "replicate": "^0.34.1"
+    "replicate": "^0.25.1"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
