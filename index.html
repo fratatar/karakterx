@@ -3,41 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; }
-        .card { max-width: 380px; margin: auto; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #eee; }
-        select, button { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; font-size: 16px; }
-        button { background: #000; color: #fff; cursor: pointer; font-weight: bold; border: none; }
-        #resultImg { width: 100%; margin-top: 20px; border-radius: 15px; display: none; }
-        #loader { display: none; margin: 20px 0; font-weight: bold; color: #555; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f9f9f9; }
+        .card { max-width: 400px; margin: auto; padding: 25px; border-radius: 20px; background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: #000; color: #fff; font-weight: bold; cursor: pointer; border: none; }
+        #resultImg { width: 100%; margin-top: 20px; border-radius: 15px; display: none; border: 3px solid #eee; }
+        #status { margin: 10px 0; font-size: 14px; color: #555; display: none; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2 style="margin-top:0">Karakter Oluştur</h2>
+        <h2 style="margin:0">KarakterX Studio</h2>
+        <p style="font-size:13px; color:#888;">Fotoğrafını yükle ve stilini seç.</p>
+        
+        <input type="file" id="fileInput" accept="image/*">
+        
         <select id="styleSelect">
-            <option value="3D Pixar animated">3D Pixar</option>
-            <option value="Anime masterpiece">Anime</option>
-            <option value="Cyberpunk neon">Cyberpunk</option>
+            <option value="3D Pixar animated">3D Pixar Tarzı</option>
+            <option value="Anime masterpiece">Anime Tarzı</option>
+            <option value="Cyberpunk neon">Cyberpunk Tarzı</option>
         </select>
-        <button id="btn" onclick="generate()">Dönüştür ✨</button>
-        <div id="loader">⚡ Karakterin Çiziliyor...</div>
+
+        <button id="btn" onclick="generate()">Karakterimi Oluştur ✨</button>
+        
+        <div id="status">⚡ Yapay zeka karakterini çiziyor...</div>
         <img id="resultImg" src="">
     </div>
 
     <script>
         async function generate() {
             const btn = document.getElementById('btn');
-            const loader = document.getElementById('loader');
+            const status = document.getElementById('status');
             const img = document.getElementById('resultImg');
             const style = document.getElementById('styleSelect').value;
 
             btn.disabled = true;
             btn.innerText = "Bekleyiniz...";
-            loader.style.display = "block";
+            status.style.display = "block";
             img.style.display = "none";
 
             try {
-                // Kendi tam Vercel URL'ini buraya yaz (Kritik!)
+                // İstek gönderiliyor
                 const response = await fetch('https://karakterx.vercel.app/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -47,20 +53,18 @@
                 const data = await response.json();
 
                 if (data.imageUrl) {
-                    // Resim internetten tam inene kadar bekle
                     img.src = data.imageUrl;
                     img.onload = () => {
                         img.style.display = "block";
-                        loader.style.display = "none";
+                        status.style.display = "none";
                         btn.disabled = false;
-                        btn.innerText = "Dönüştür ✨";
+                        btn.innerText = "Karakterimi Oluştur ✨";
                     };
                 }
             } catch (error) {
-                alert("Bağlantı hatası! Tekrar deneyin.");
+                alert("Hata oluştu, lütfen sayfayı yenileyip tekrar deneyin.");
                 btn.disabled = false;
-                loader.style.display = "none";
-                btn.innerText = "Dönüştür ✨";
+                status.style.display = "none";
             }
         }
     </script>
