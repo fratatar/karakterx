@@ -2,7 +2,7 @@ export default async function handler(req, res) {
     try {
         const { style, step } = req.query;
 
-        // ADIM 2: RESİM OLUŞTURMA VE GÖSTERME
+        // ADIM 2: RESİM OLUŞTURMA VE GÖSTERME EKRANI
         if (step === 'show') {
             const seed = Math.floor(Math.random() * 9999999);
             const prompt = encodeURIComponent(`${style} style 3D character portrait, masterpiece, high resolution`);
@@ -10,6 +10,8 @@ export default async function handler(req, res) {
             
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             return res.status(200).send(`
+                <!DOCTYPE html>
+                <html>
                 <body style="font-family:sans-serif; text-align:center; padding:20px; background:#fff;">
                     <div style="max-width:380px; margin:auto; padding:20px; border:1px solid #eee; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,0.1);">
                         <h3 style="margin-top:0;">Karakterin Hazır!</h3>
@@ -18,31 +20,38 @@ export default async function handler(req, res) {
                         <p style="font-size:13px; color:green; font-weight:bold;">✓ Tasarımı beğendiysen sayfayı kapatıp ürünü sepete ekleyebilirsin.</p>
                     </div>
                 </body>
+                </html>
             `);
         }
 
-        // ADIM 1: GİRİŞ FORMU (JavaScript içermez, ikas CSP'sine takılmaz)
+        // ADIM 1: GİRİŞ FORMU EKRANI (ikas Güvenlik Duvarı Dostu)
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         return res.status(200).send(`
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
             <body style="font-family:sans-serif; text-align:center; padding:20px; background:#fff;">
                 <div style="max-width:380px; margin:auto; padding:25px; border:1px solid #eee; border-radius:20px; box-shadow:0 5px 20px rgba(0,0,0,0.05);">
-                    <h2 style="margin-top:0;">KarakterX Studio</h2>
-                    <p style="font-size:14px; color:#666; margin-bottom:20px;">Stilini seç ve karakterini oluştur.</p>
+                    <h2 style="margin-top:0; color:#000;">KarakterX Studio</h2>
+                    <p style="font-size:14px; color:#666; margin-bottom:20px;">Stilini seç ve 3D karakterini oluştur.</p>
                     <form action="/api/generate" method="GET">
                         <input type="hidden" name="step" value="show">
-                        <select name="style" style="width:100%; padding:15px; border-radius:12px; border:1.5px solid #ddd; font-size:16px; margin-bottom:20px;">
+                        <select name="style" style="width:100%; padding:15px; border-radius:12px; border:1.5px solid #ddd; font-size:16px; margin-bottom:20px; outline:none;">
                             <option value="3D Pixar animated">3D Pixar Tarzı</option>
                             <option value="Anime manga portrait">Anime Tarzı</option>
                             <option value="Cyberpunk neon futuristic">Cyberpunk Tarzı</option>
+                            <option value="Realistic photo style portrait">Gerçekçi Tarzı</option>
                         </select>
                         <button type="submit" style="width:100%; padding:18px; background:black; color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer;">
                             Karakterimi Çiz 🚀
                         </button>
                     </form>
+                    <p style="font-size:11px; color:#aaa; margin-top:20px;">KarakterX Studio - Vercel Engine</p>
                 </div>
             </body>
+            </html>
         `);
     } catch (error) {
-        return res.status(200).send("Bir hata oluştu, lütfen sayfayı yenileyin.");
+        return res.status(200).send("Bir hata oluştu. Lütfen sayfayı yenileyip tekrar deneyin.");
     }
 }
