@@ -1,2 +1,7 @@
 [build]
-  functions = "netlify/functions"
+  functions = "functions"
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/generate"
+  status = 200
