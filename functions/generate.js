@@ -1,40 +1,47 @@
-
 exports.handler = async (event) => {
+    // Tüm CORS ve Güvenlik engellerini kaldıran header'lar
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Content-Type': 'text/html; charset=utf-8'
+    };
+
     try {
         const { style, step } = event.queryStringParameters || {};
 
-        // ADIM 2: RESİM OLUŞTURMA VE YENİ SEKMEDE AÇMA
+        // ADIM 2: RESİM OLUŞTURMA VE GÖSTERME
         if (step === 'show') {
             const seed = Math.floor(Math.random() * 9999999);
-            const prompt = encodeURIComponent(`${style} style 3D character portrait, masterpiece, high quality, 8k`);
+            // Yapay zekaya giden net komut (Flux Model)
+            const prompt = encodeURIComponent(`${style} style 3D character portrait, masterpiece, high quality, 8k, highly detailed`);
             const imageUrl = `https://gen.pollinations.ai/image/${prompt}?model=flux&width=1024&height=1024&seed=${seed}&nologo=true`;
             
             return {
                 statusCode: 200,
-                headers: { 'Content-Type': 'text/html; charset=utf-8' },
+                headers,
                 body: `
                     <html>
-                    <body style="font-family:sans-serif; text-align:center; padding:40px;">
-                        <h2 style="color:green;">✓ Karakterin Oluşturuldu!</h2>
-                        <p>Resmin şimdi yeni sekmede açılıyor...</p>
-                        <script>
-                            window.open("${imageUrl}", "_blank");
-                        </script>
-                        <p style="margin-top:20px;">Eğer açılmadıysa: <a href="${imageUrl}" target="_blank" style="font-weight:bold; color:black; font-size:18px;">BURAYA TIKLA VE RESMİ GÖR</a></p>
-                        <button onclick="window.history.back()" style="margin-top:20px; padding:10px 20px; cursor:pointer;">Geri Dön</button>
+                    <body style="font-family:sans-serif; text-align:center; padding:20px; background:#fff;">
+                        <div style="max-width:380px; margin:auto; padding:20px; border:1px solid #eee; border-radius:20px; box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+                            <h3 style="margin-top:0;">Karakterin Oluşturuldu!</h3>
+                            <img src="${imageUrl}" style="width:100%; border-radius:15px; border:2px solid #000; margin-bottom:15px;">
+                            <p style="font-size:14px; color:#444;">Seçilen Stil: <b>${style}</b></p>
+                            <a href="/.netlify/functions/generate" style="display:block; text-decoration:none; color:white; background:black; padding:15px; border-radius:10px; font-weight:bold; margin-bottom:10px;">Yeni Fotoğraf Dönüştür ✨</a>
+                            <p style="font-size:12px; color:green; font-weight:bold;">✓ Beğendiysen resmi kaydet ve sepete ekle.</p>
+                        </div>
                     </body>
                     </html>`
             };
         }
 
-        // ADIM 1: GİRİŞ FORMU (6 SEÇENEK + RESİM YÜKLEME ALANI)
+        // ADIM 1: GİRİŞ FORMU (6 SEÇENEK + DOSYA YÜKLEME)
         return {
             statusCode: 200,
-            headers: { 'Content-Type': 'text/html; charset=utf-8' },
+            headers,
             body: `
                 <html>
                 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-                <body style="font-family:sans-serif; text-align:center; padding:20px;">
+                <body style="font-family:sans-serif; text-align:center; padding:20px; background:#fff;">
                     <div style="max-width:380px; margin:auto; padding:25px; border:2px dashed #ddd; border-radius:20px;">
                         <h2 style="margin-top:0;">KarakterX Studio</h2>
                         <form action="/.netlify/functions/generate" method="GET">
@@ -44,25 +51,10 @@ exports.handler = async (event) => {
                                 <input type="file" accept="image/*" required style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px;">
                             </div>
                             <div style="margin-bottom:20px; text-align:left;">
-                                <label style="font-weight:bold; display:block; margin-bottom:8px;">2. Stilini Seç:</label>
+                                <label style="font-weight:bold; display:block; margin-bottom:8px;">2. Stilini Belirle:</label>
                                 <select name="style" required style="width:100%; padding:15px; border-radius:10px; border:1px solid #ccc; font-size:16px;">
                                     <option value="3D Pixar Animation">Pixar Tarzı</option>
                                     <option value="Japanese Anime Manga">Anime Tarzı</option>
                                     <option value="Cyberpunk Neon">Cyberpunk Tarzı</option>
-                                    <option value="Realistic Photo">Gerçekçi Fotoğraf</option>
-                                    <option value="Comic Book">Çizgi Roman</option>
-                                    <option value="Oil Painting">Yağlı Boya</option>
-                                </select>
-                            </div>
-                            <button type="submit" style="width:100%; padding:18px; background:black; color:white; border:none; border-radius:12px; font-weight:bold; font-size:18px; cursor:pointer;">
-                                Karakterimi Oluştur 🚀
-                            </button>
-                        </form>
-                    </div>
-                </body>
-                </html>`
-        };
-    } catch (error) {
-        return { statusCode: 200, body: "Sistem meşgul, lütfen tekrar deneyin." };
-    }
-};
+                                    <option value="Realistic Professional Photo">Gerçekçi Fotoğraf</option>
+                                    <option value="Marvel DC Comic Book">
